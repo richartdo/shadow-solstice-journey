@@ -9,38 +9,155 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as GameRouteImport } from './routes/game'
+import { Route as EndingRouteImport } from './routes/ending'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGenerateEndingRouteImport } from './routes/api/generate-ending'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameRoute = GameRouteImport.update({
+  id: '/game',
+  path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EndingRoute = EndingRouteImport.update({
+  id: '/ending',
+  path: '/ending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerateEndingRoute = ApiGenerateEndingRouteImport.update({
+  id: '/api/generate-ending',
+  path: '/api/generate-ending',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ending': typeof EndingRoute
+  '/game': typeof GameRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/setup': typeof SetupRoute
+  '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ending': typeof EndingRoute
+  '/game': typeof GameRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/setup': typeof SetupRoute
+  '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ending': typeof EndingRoute
+  '/game': typeof GameRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/setup': typeof SetupRoute
+  '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/ending'
+    | '/game'
+    | '/leaderboard'
+    | '/setup'
+    | '/api/generate-ending'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/ending'
+    | '/game'
+    | '/leaderboard'
+    | '/setup'
+    | '/api/generate-ending'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/ending'
+    | '/game'
+    | '/leaderboard'
+    | '/setup'
+    | '/api/generate-ending'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  EndingRoute: typeof EndingRoute
+  GameRoute: typeof GameRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  SetupRoute: typeof SetupRoute
+  ApiGenerateEndingRoute: typeof ApiGenerateEndingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game': {
+      id: '/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ending': {
+      id: '/ending'
+      path: '/ending'
+      fullPath: '/ending'
+      preLoaderRoute: typeof EndingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +165,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generate-ending': {
+      id: '/api/generate-ending'
+      path: '/api/generate-ending'
+      fullPath: '/api/generate-ending'
+      preLoaderRoute: typeof ApiGenerateEndingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  EndingRoute: EndingRoute,
+  GameRoute: GameRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  SetupRoute: SetupRoute,
+  ApiGenerateEndingRoute: ApiGenerateEndingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
