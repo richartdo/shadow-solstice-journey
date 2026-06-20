@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EndingRouteImport } from './routes/ending'
@@ -21,6 +22,11 @@ import { Route as ApiGenerateEndingRouteImport } from './routes/api/generate-end
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/ending': typeof EndingRoute
   '/game': typeof GameRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/ending': typeof EndingRoute
   '/game': typeof GameRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/ending': typeof EndingRoute
   '/game': typeof GameRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/ending'
     | '/game'
     | '/leaderboard'
+    | '/profile'
     | '/setup'
     | '/api/generate-ending'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/ending'
     | '/game'
     | '/leaderboard'
+    | '/profile'
     | '/setup'
     | '/api/generate-ending'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/ending'
     | '/game'
     | '/leaderboard'
+    | '/profile'
     | '/setup'
     | '/api/generate-ending'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   EndingRoute: typeof EndingRoute
   GameRoute: typeof GameRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  ProfileRoute: typeof ProfileRoute
   SetupRoute: typeof SetupRoute
   ApiGenerateEndingRoute: typeof ApiGenerateEndingRoute
 }
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leaderboard': {
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   EndingRoute: EndingRoute,
   GameRoute: GameRoute,
   LeaderboardRoute: LeaderboardRoute,
+  ProfileRoute: ProfileRoute,
   SetupRoute: SetupRoute,
   ApiGenerateEndingRoute: ApiGenerateEndingRoute,
 }

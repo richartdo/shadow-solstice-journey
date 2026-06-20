@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -14,7 +15,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
   }, []);
 
   async function signOut() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast(error.message);
+      return;
+    }
+    toast("You have signed out.");
   }
 
   return (
@@ -36,13 +42,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <NavLink to="/leaderboard">Leaderboard</NavLink>
           <NavLink to="/about">About</NavLink>
           {signedIn ? (
-            <button
-              type="button"
-              onClick={signOut}
-              className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors"
-            >
-              Sign out
-            </button>
+            <>
+              <NavLink to="/profile">Profile</NavLink>
+              <button
+                type="button"
+                onClick={signOut}
+                className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors"
+              >
+                Sign out
+              </button>
+            </>
           ) : (
             <NavLink to="/auth">Sign in</NavLink>
           )}

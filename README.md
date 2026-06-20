@@ -49,6 +49,7 @@ Guests can complete the full journey locally. Signed-in players can permanently 
 - Guest play without registration
 - Email/password authentication through Supabase
 - Google OAuth through Supabase
+- User profiles with display names, avatars, journey counts, and sign-out controls
 - Authenticated journey saving
 - Public leaderboard with restricted fields
 - Personalized 120–180-word AI endings through OpenRouter
@@ -267,6 +268,8 @@ The `/auth` route supports:
 - Email/password sign-in
 - Sign-out
 - Returning the player to `/ending` when a completed local journey is waiting to be saved
+
+The protected `/profile` route displays the account avatar, email, sign-in provider, join date, and saved-journey count. Players can update their display name or sign out from either the profile or site header.
 
 ### Google authentication
 
