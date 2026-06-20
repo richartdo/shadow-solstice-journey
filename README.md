@@ -515,6 +515,22 @@ Build output is written to:
 
 The frontend and Express backend may be deployed independently.
 
+### Vercel frontend deployment
+
+The Vite configuration enables Nitro's `vercel` preset and produces Vercel Build Output API files in `.vercel/output`.
+
+When importing the GitHub repository into Vercel, use:
+
+```text
+Root Directory: ./
+Framework Preset: Other
+Install Command: pnpm install
+Build Command: pnpm run build
+Output Directory: leave empty
+```
+
+Do not set the output directory to `dist` or `dist/client`; the application uses server-side rendering and Nitro supplies both the static assets and server function through `.vercel/output`.
+
 ### Frontend
 
 Configure these variables in the frontend hosting environment:
