@@ -1,16 +1,33 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function SiteShell({ children }: { children: ReactNode }) {
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session));
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
   return (
     <div className="relative min-h-screen bg-hero text-foreground overflow-x-hidden">
       <Stars />
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Link to="/" className="group flex items-center gap-2.5">
-          <span className="relative inline-flex size-9 items-center justify-center rounded-full bg-solstice glow-gold">
-            <Sparkles className="size-4 text-background" />
-          </span>
+          <img
+            src="/game-icon.png"
+            alt=""
+            aria-hidden="true"
+            className="size-9 rounded-full object-cover glow-gold"
+          />
           <span className="font-display text-lg sm:text-xl tracking-wide">
             Shadow of <span className="text-solstice">Choices</span>
           </span>
@@ -18,6 +35,17 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <nav className="flex items-center gap-1 text-sm">
           <NavLink to="/leaderboard">Leaderboard</NavLink>
           <NavLink to="/about">About</NavLink>
+          {signedIn ? (
+            <button
+              type="button"
+              onClick={signOut}
+              className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors"
+            >
+              Sign out
+            </button>
+          ) : (
+            <NavLink to="/auth">Sign in</NavLink>
+          )}
         </nav>
       </header>
       <main className="relative z-10">{children}</main>

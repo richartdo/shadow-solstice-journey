@@ -6,7 +6,7 @@ import { ChoiceButton } from "@/components/ChoiceButton";
 import { ScoreMeter } from "@/components/ScoreMeter";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { scenes, calculateEnding, type Choice } from "@/data/scenes";
-import { supabase } from "@/integrations/supabase/client";
+import { saveGameResult, type StoredChoice } from "@/lib/save-game-result";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,10 @@ export const Route = createFileRoute("/game")({
   head: () => ({
     meta: [
       { title: "The Journey — Shadow of Choices" },
-      { name: "description", content: "Walk the solstice path. Every choice shapes who you become." },
+      {
+        name: "description",
+        content: "Walk the solstice path. Every choice shapes who you become.",
+      },
     ],
   }),
   component: Game,
@@ -28,6 +31,7 @@ export const Route = createFileRoute("/game")({
 
 interface ChoiceRecord {
   scene_id: number;
+  scene_title: string;
   choice_text: string;
   light_points: number;
   shadow_points: number;
@@ -54,7 +58,12 @@ function Game() {
     setPlayer(JSON.parse(raw));
   }, [navigate]);
 
-  if (!player) return <SiteShell><div className="py-24 text-center text-muted-foreground">Preparing the threshold…</div></SiteShell>;
+  if (!player)
+    return (
+      <SiteShell>
+        <div className="py-24 text-center text-muted-foreground">Preparing the threshold…</div>
+      </SiteShell>
+    );
 
   const scene = scenes[sceneIndex];
 
@@ -66,6 +75,7 @@ function Game() {
     const newShadow = shadow + choice.shadowPoints;
     const record: ChoiceRecord = {
       scene_id: scene.id,
+      scene_title: scene.title,
       choice_text: choice.text,
       light_points: choice.lightPoints,
       shadow_points: choice.shadowPoints,
@@ -94,27 +104,23 @@ function Game() {
     setFinishing(true);
     const ending = calculateEnding(light, shadow);
     let sessionId: string | null = null;
+    const storedChoices: StoredChoice[] = history.map((choice) => ({
+      sceneId: choice.scene_id,
+      sceneTitle: choice.scene_title,
+      choiceText: choice.choice_text,
+      lightPoints: choice.light_points,
+      shadowPoints: choice.shadow_points,
+    }));
+
     try {
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .insert({
-          player_name: player!.name,
-          light_score: light,
-          shadow_score: shadow,
-          ending_type: ending,
-          completed_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-      if (!error && data) {
-        sessionId = data.id;
-        const sid = data.id;
-        if (history.length > 0) {
-          await supabase.from("player_choices").insert(
-            history.map((h) => ({ ...h, session_id: sid })),
-          );
-        }
-      }
+      const saveOutcome = await saveGameResult({
+        playerName: player!.name,
+        lightScore: light,
+        shadowScore: shadow,
+        endingType: ending,
+        choices: storedChoices,
+      });
+      if (saveOutcome.status === "saved") sessionId = saveOutcome.sessionId;
     } catch {
       // Network issue — still proceed to ending screen
     }
@@ -129,6 +135,7 @@ function Game() {
           light,
           shadow,
           ending,
+          choices: storedChoices,
         }),
       );
     }
@@ -148,16 +155,9 @@ function Game() {
           </GameCard>
         </div>
 
-        <GameCard
-          key={scene.id}
-          className="animate-in fade-in slide-in-from-bottom-3 duration-700"
-        >
-          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">
-            Scene {scene.id}
-          </p>
-          <h2 className="font-display text-3xl sm:text-4xl text-foreground mb-5">
-            {scene.title}
-          </h2>
+        <GameCard key={scene.id} className="animate-in fade-in slide-in-from-bottom-3 duration-700">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Scene {scene.id}</p>
+          <h2 className="font-display text-3xl sm:text-4xl text-foreground mb-5">{scene.title}</h2>
           <p className="font-display text-lg sm:text-xl leading-relaxed text-foreground/85 italic">
             {scene.narrative}
           </p>
@@ -178,7 +178,12 @@ function Game() {
         </GameCard>
       </section>
 
-      <Dialog open={!!reflection} onOpenChange={(o) => { if (!o) void continueAfterReflection(); }}>
+      <Dialog
+        open={!!reflection}
+        onOpenChange={(o) => {
+          if (!o) void continueAfterReflection();
+        }}
+      >
         <DialogContent className="glass border-border max-w-sm text-center">
           <DialogHeader>
             <div className="mx-auto mb-2 size-10 rounded-full bg-solstice flex items-center justify-center">

@@ -28,11 +28,7 @@ function Leaderboard() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .select("id, player_name, ending_type, light_score, shadow_score, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
+      const { data, error } = await supabase.rpc("get_leaderboard", { limit_count: 50 });
       if (error) throw error;
       return data ?? [];
     },
@@ -56,7 +52,11 @@ function Leaderboard() {
           )}
           {!isLoading && !error && data && data.length === 0 && (
             <div className="p-10 text-center text-muted-foreground">
-              No travelers yet. <Link to="/setup" className="text-primary underline">Be the first</Link>.
+              No travelers yet.{" "}
+              <Link to="/setup" className="text-primary underline">
+                Be the first
+              </Link>
+              .
             </div>
           )}
           {!isLoading && !error && data && data.length > 0 && (
@@ -74,16 +74,25 @@ function Leaderboard() {
                 </thead>
                 <tbody>
                   {data.map((r) => (
-                    <tr key={r.id} className="border-b border-border/60 hover:bg-card/40 transition-colors">
+                    <tr
+                      key={r.id}
+                      className="border-b border-border/60 hover:bg-card/40 transition-colors"
+                    >
                       <td className="px-5 py-3 font-medium text-foreground">{r.player_name}</td>
                       <td className="px-5 py-3">
                         <span className="inline-flex items-center gap-1.5 text-foreground/90">
                           <EndingIcon ending={r.ending_type} /> {r.ending_type}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right tabular-nums text-gold">{r.light_score}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-accent">{r.shadow_score}</td>
-                      <td className="px-5 py-3 text-right text-muted-foreground">{formatDate(r.created_at)}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-gold">
+                        {r.light_score}
+                      </td>
+                      <td className="px-5 py-3 text-right tabular-nums text-accent">
+                        {r.shadow_score}
+                      </td>
+                      <td className="px-5 py-3 text-right text-muted-foreground">
+                        {formatDate(r.created_at)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -95,7 +104,9 @@ function Leaderboard() {
                   <li key={r.id} className="p-4">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">{r.player_name}</span>
-                      <span className="text-xs text-muted-foreground">{formatDate(r.created_at)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(r.created_at)}
+                      </span>
                     </div>
                     <div className="mt-1 text-sm inline-flex items-center gap-1.5">
                       <EndingIcon ending={r.ending_type} /> {r.ending_type}

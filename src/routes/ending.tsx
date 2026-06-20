@@ -4,6 +4,7 @@ import { SiteShell } from "@/components/SiteShell";
 import { EndingCard } from "@/components/EndingCard";
 import { endingPoetry, type EndingType } from "@/data/scenes";
 import { supabase } from "@/integrations/supabase/client";
+import { saveGameResult } from "@/lib/save-game-result";
 import { toast } from "sonner";
 import { Sparkles, RotateCcw, Share2, Save, Trophy } from "lucide-react";
 
@@ -24,7 +25,16 @@ interface Result {
   light: number;
   shadow: number;
   ending: EndingType;
+  choices: Array<{
+    sceneId?: number;
+    sceneTitle: string;
+    choiceText: string;
+    lightPoints: number;
+    shadowPoints: number;
+  }>;
 }
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/u, "");
 
 function Ending() {
   const navigate = useNavigate();
@@ -40,39 +50,61 @@ function Ending() {
       navigate({ to: "/" });
       return;
     }
-    setResult(JSON.parse(raw));
+    const stored = JSON.parse(raw) as Result;
+    setResult(stored);
+    setSaved(Boolean(stored.sessionId));
   }, [navigate]);
 
   if (!result) {
-    return <SiteShell><div className="py-24 text-center text-muted-foreground">Reading the stars…</div></SiteShell>;
+    return (
+      <SiteShell>
+        <div className="py-24 text-center text-muted-foreground">Reading the stars…</div>
+      </SiteShell>
+    );
   }
 
   async function generateAi() {
     if (!result || aiLoading) return;
     setAiLoading(true);
     try {
-      const res = await fetch("/api/generate-ending", {
+      if (!result.sessionId) {
+        toast("Save this journey with an account before generating its AI ending.");
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        toast("Sign in again to generate your personalized ending.");
+        navigate({ to: "/auth" });
+        return;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/generate-ending`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           playerName: result.name,
-          ending: result.ending,
+          sessionId: result.sessionId,
+          endingType: result.ending,
           lightScore: result.light,
           shadowScore: result.shadow,
+          choices: result.choices.map((choice) => ({
+            sceneTitle: choice.sceneTitle,
+            choiceText: choice.choiceText,
+            lightPoints: choice.lightPoints,
+            shadowPoints: choice.shadowPoints,
+          })),
         }),
       });
-      const json = (await res.json()) as { ok: boolean; ending?: string; message?: string };
-      if (json.ok && json.ending) {
+      const json = (await res.json()) as { success: boolean; ending?: string; error?: string };
+      if (res.ok && json.success && json.ending) {
         setAiEnding(json.ending);
-        // Persist if we have a session
-        if (result.sessionId) {
-          await supabase
-            .from("game_sessions")
-            .update({ ai_ending: json.ending })
-            .eq("id", result.sessionId);
-        }
       } else {
-        toast(json.message || "AI ending will be available soon.");
+        toast(json.error || "AI ending will be available soon.");
       }
     } catch {
       toast("AI ending will be available soon.");
@@ -89,7 +121,9 @@ function Ending() {
       try {
         await navigator.share({ title: "Shadow of Choices", text, url });
         return;
-      } catch { /* fall through */ }
+      } catch {
+        /* fall through */
+      }
     }
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       await navigator.clipboard.writeText(`${text} ${url}`);
@@ -97,13 +131,40 @@ function Ending() {
     }
   }
 
-  function save() {
+  async function save() {
+    if (!result) return;
     if (saved) return toast("Already saved to the leaderboard");
-    if (result?.sessionId) {
+
+    const outcome = await saveGameResult({
+      playerName: result.name,
+      lightScore: result.light,
+      shadowScore: result.shadow,
+      endingType: result.ending,
+      choices: result.choices.map((choice, index) => ({
+        sceneId: choice.sceneId ?? index + 1,
+        sceneTitle: choice.sceneTitle,
+        choiceText: choice.choiceText,
+        lightPoints: choice.lightPoints,
+        shadowPoints: choice.shadowPoints,
+      })),
+    });
+
+    if (outcome.status === "anonymous") {
+      toast("Sign in or create an account to save this journey.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (outcome.status === "error") {
+      toast(outcome.message);
+      return;
+    }
+
+    const updatedResult = { ...result, sessionId: outcome.sessionId };
+    setResult(updatedResult);
+    sessionStorage.setItem("soc:result", JSON.stringify(updatedResult));
+    if (outcome.status === "saved") {
       setSaved(true);
       toast("Saved to the leaderboard");
-    } else {
-      toast("Could not reach the leaderboard. Try again later.");
     }
   }
 
@@ -144,9 +205,10 @@ function Ending() {
           </button>
           <button
             onClick={save}
+            disabled={saved}
             className="inline-flex items-center gap-2 rounded-full glass px-5 py-2.5 text-sm font-medium hover:border-primary/50 transition-all"
           >
-            <Save className="size-4" /> Save Result
+            <Save className="size-4" /> {saved ? "Saved" : "Save Result"}
           </button>
           <Link
             to="/leaderboard"

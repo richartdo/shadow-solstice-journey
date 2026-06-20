@@ -48,12 +48,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:glow-gold transition-all"
           >
             Try again
           </button>
-          <a href="/" className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
+          <a
+            href="/"
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+          >
             Go home
           </a>
         </div>
@@ -68,17 +74,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Shadow of Choices — A Solstice Journey" },
-      { name: "description", content: "An interactive solstice journey of light, shadow, and identity. Every choice shapes your path." },
+      {
+        name: "description",
+        content:
+          "An interactive solstice journey of light, shadow, and identity. Every choice shapes your path.",
+      },
       { property: "og:title", content: "Shadow of Choices — A Solstice Journey" },
-      { property: "og:description", content: "An interactive solstice journey of light, shadow, and identity." },
+      {
+        property: "og:description",
+        content: "An interactive solstice journey of light, shadow, and identity.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/game-icon.png" },
+      { rel: "apple-touch-icon", href: "/game-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
