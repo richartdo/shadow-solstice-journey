@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as GameRouteImport } from './routes/game'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGenerateEndingRouteImport } from './routes/api/generate-ending'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameRoute = GameRouteImport.update({
+  id: '/game',
+  path: '/game',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,30 +37,34 @@ const ApiGenerateEndingRoute = ApiGenerateEndingRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/game': typeof GameRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/game': typeof GameRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/game': typeof GameRoute
   '/setup': typeof SetupRoute
   '/api/generate-ending': typeof ApiGenerateEndingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/setup' | '/api/generate-ending'
+  fullPaths: '/' | '/game' | '/setup' | '/api/generate-ending'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/setup' | '/api/generate-ending'
-  id: '__root__' | '/' | '/setup' | '/api/generate-ending'
+  to: '/' | '/game' | '/setup' | '/api/generate-ending'
+  id: '__root__' | '/' | '/game' | '/setup' | '/api/generate-ending'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GameRoute: typeof GameRoute
   SetupRoute: typeof SetupRoute
   ApiGenerateEndingRoute: typeof ApiGenerateEndingRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game': {
+      id: '/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof GameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GameRoute: GameRoute,
   SetupRoute: SetupRoute,
   ApiGenerateEndingRoute: ApiGenerateEndingRoute,
 }

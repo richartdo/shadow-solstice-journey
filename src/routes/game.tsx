@@ -108,9 +108,10 @@ function Game() {
         .single();
       if (!error && data) {
         sessionId = data.id;
+        const sid = data.id;
         if (history.length > 0) {
           await supabase.from("player_choices").insert(
-            history.map((h) => ({ ...h, session_id: sessionId })),
+            history.map((h) => ({ ...h, session_id: sid })),
           );
         }
       }
